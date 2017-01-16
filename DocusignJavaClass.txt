@@ -1,0 +1,152 @@
+package com.spark.docusign;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class JsonRead {
+
+	public String formatStringtoValidJson(String data) {
+
+		String returnData = "";
+		String orignalData = data;
+		try {
+			
+			data = data.replace("RecipientStatuses", "tempRST");
+			data = data.replace("CustomFields", "tempCTF");
+			data = data.replace("TabStatuses", "tempTST");
+			data = data.replace("DocumentStatuses", "tempDST");
+			data = data.replace("DocumentPDFs", "tempPDF"); 
+			data = data.replace("CustomFieldType", "tempCFT");
+			
+			int i = 0; //RecipientStatus
+			while (data.indexOf("RecipientStatus") > 0) {
+				String replaceText = "temp" + i;
+				data = data.replaceFirst("RecipientStatus", replaceText);
+				i = i + 1;
+
+			}
+			
+			int m = 0; //TabStatuses
+			while (data.indexOf("TabStatus") > 0) {
+				String replaceText = "temp" + m;
+				data = data.replaceFirst("TabStatus", replaceText);
+				m = m + 1;
+			}
+			
+			int n = 0; //CustomField
+			while (data.indexOf("CustomField") > 0) {
+				String replaceText = "temp" + n;
+				data = data.replaceFirst("CustomField", replaceText);
+				n = n + 1;
+			}
+			
+			int p = 0; //CustomField
+			while (data.indexOf("DocumentStatus") > 0) {
+				String replaceText = "temp" + p;
+				data = data.replaceFirst("DocumentStatus", replaceText);
+				p = p + 1;
+			}
+
+			int q = 0; //DocumentPDF
+			while (data.indexOf("DocumentPDF") > 0) {
+				String replaceText = "temp" + q;
+				data = data.replaceFirst("DocumentPDF", replaceText);
+				q = q + 1;
+			}
+			
+			data = data.replace("tempRST" ,"RecipientStatuses" );
+			data = data.replace("tempCTF" ,"CustomFields" );
+			data = data.replace( "tempTST" ,"TabStatuses");
+			data = data.replace("tempDST" ,"DocumentStatuses" );
+			data = data.replace("tempPDF" ,"DocumentPDFs" ); 
+			data = data.replace("tempCFT" ,"CustomFieldType" );
+			
+			
+			JSONObject jsonObj = new JSONObject(data);
+			JSONArray arrRescipentStatus = new JSONArray();
+			JSONArray arrDocumentPDF = new JSONArray();
+			JSONArray arrCustomField = new JSONArray();
+			JSONArray arrDocumentStatus = new JSONArray();
+
+			for (int j = 0; j < i; j++) {
+				JSONObject obj = jsonObj.getJSONObject("hookResponse")
+						.getJSONObject("DocuSignEnvelopeInformation")
+						.getJSONObject("EnvelopeStatus")
+						.getJSONObject("RecipientStatuses").getJSONObject("temp" + j);
+				arrRescipentStatus.put(obj);
+			}
+
+			/*jsonObj.getJSONObject("DocuSignEnvelopeInformation")
+					.getJSONObject("EnvelopeStatus").remove("temp0es");*/
+			jsonObj.getJSONObject("hookResponse")
+					.getJSONObject("DocuSignEnvelopeInformation")
+					.getJSONObject("EnvelopeStatus")
+					.put("RecipientStatuses", arrRescipentStatus);
+			
+			for (int j = 0; j < q; j++) {
+				JSONObject obj = jsonObj
+						.getJSONObject("hookResponse")
+						.getJSONObject("DocuSignEnvelopeInformation")
+						.getJSONObject("DocumentPDFs")
+						.getJSONObject("temp" + j);
+				arrDocumentPDF.put(obj);
+			}
+			jsonObj.getJSONObject("hookResponse").getJSONObject("DocuSignEnvelopeInformation").put("DocumentPDFs",arrDocumentPDF);
+			
+			for (int j = 0; j < n; j++) {
+				JSONObject obj = jsonObj.getJSONObject("hookResponse")
+						.getJSONObject("DocuSignEnvelopeInformation").getJSONObject("EnvelopeStatus")
+						.getJSONObject("CustomFields")
+						.getJSONObject("temp" + j);
+				arrCustomField.put(obj);
+			}
+			jsonObj.getJSONObject("hookResponse").getJSONObject("DocuSignEnvelopeInformation").getJSONObject("EnvelopeStatus").put("CustomFields",arrCustomField);
+			
+			
+			for (int j = 0; j < p; j++) {
+				JSONObject obj = jsonObj.getJSONObject("hookResponse")
+						.getJSONObject("DocuSignEnvelopeInformation").getJSONObject("EnvelopeStatus")
+						.getJSONObject("DocumentStatuses")
+						.getJSONObject("temp" + j);
+				arrDocumentStatus.put(obj);
+			}
+			jsonObj.getJSONObject("hookResponse").getJSONObject("DocuSignEnvelopeInformation").getJSONObject("EnvelopeStatus").put("DocumentStatuses",arrDocumentStatus);
+			
+			
+				JSONArray objArry = jsonObj.getJSONObject("hookResponse")
+						.getJSONObject("DocuSignEnvelopeInformation").getJSONObject("EnvelopeStatus")
+						.getJSONArray("RecipientStatuses");
+				int j = 0;
+				for (int k = 0; k < objArry.length(); k++) {
+					JSONObject  obj1 = objArry.getJSONObject(k);
+					if(obj1.has("TabStatuses")){
+						JSONArray tabStatus = new JSONArray();
+						for (; j < m; j++) {
+							if(obj1.getJSONObject("TabStatuses").has("temp" + j)){
+								JSONObject obj = obj1.getJSONObject("TabStatuses").getJSONObject("temp" + j);
+								tabStatus.put(obj);
+							}else {
+								break;
+							}
+						}
+						obj1.put("TabStatuses",tabStatus );
+					}
+				}
+						
+			
+			//jsonObj.getJSONObject("hookResponse").getJSONObject("DocuSignEnvelopeInformation").getJSONObject("EnvelopeStatus").put("DocumentStatuses",arrDocumentStatus);
+			
+			
+			
+			
+			
+			returnData = jsonObj.toString();
+		} catch (Exception ex) {
+			returnData = orignalData;
+			ex.printStackTrace();
+		}
+
+		return returnData;
+	}
+
+}
